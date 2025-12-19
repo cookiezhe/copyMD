@@ -1,16 +1,60 @@
-# React + Vite
+# 掘金 Markdown 导出插件
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个 Chrome 插件，用于将掘金文章转换为 Markdown 文件，保留原始层级、代码块语言和缩进，去掉冗余 CSS 和内联样式，方便本地编辑和笔记整理。
 
-Currently, two official plugins are available:
+------
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 功能特点
 
-## React Compiler
+- ✅ 自动提取掘金文章标题和正文
+- ✅ 保留文章层级结构（H1-H6）
+- ✅ 代码块保留原始缩进和换行，并识别语言
+- ✅ 清理 HTML 中多余的样式、CSS
+- ✅ 支持文章中多种内容（文本、图片、表格、引用）
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+------
 
-## Expanding the ESLint configuration
+## 安装方法
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. 下载插件源码（`.zip` 或克隆仓库）
+2. 打开 Chrome 浏览器，访问 `chrome://extensions/`
+3. 打开右上角 **开发者模式**
+4. 点击 **加载已解压的扩展程序**
+5. 选择插件源码所在目录
+
+安装完成后，浏览器右上角会显示插件图标。
+
+------
+
+## 使用方法
+
+1. 打开掘金文章页面（仅支持 `juejin.cn` 域名）
+2. 点击浏览器右上角插件图标
+3. 点击 **“导出 Markdown”** 按钮
+4. 插件会提取文章内容，并生成 Markdown 文本
+5. 复制到本地 `.md` 文件或笔记工具中即可
+
+------
+
+## 注意事项
+
+- 仅支持掘金文章页面，非掘金页面无法使用
+- 插件会去掉 CSS 样式和内联样式，保证 Markdown 干净
+- 代码块会保留语言信息，但需要文章原始 HTML 中有 `language-xxx` 或 `hljs xxx` 类名
+- 如果文章正文的第一个 H1 与标题一致，则不会重复添加标题
+
+------
+
+## 未来改进
+
+- 支持批量导出文章列表
+- 增加本地保存为 `.md` 文件功能
+- 支持其他技术博客平台
+
+------
+
+## 技术栈
+
+- Chrome Extension API
+- Turndown — HTML 转 Markdown
+- 原生 JavaScript、MutationObserver
