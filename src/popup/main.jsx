@@ -1,15 +1,39 @@
 import React, { useState, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 
+// 简单防抖函数
+function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+        if (timer) return; // 防重复点击
+        fn(...args);
+        timer = setTimeout(() => {
+            timer = null;
+        }, delay);
+    };
+}
+
+// Markdown 格式优化
+function formatMarkdown(md) {
+    if (!md) return '';
+    // 去掉首尾多余空行
+    md = md.replace(/^\s+|\s+$/g, '');
+    // 多行空行统一为一行
+    md = md.replace(/\n{3,}/g, '\n\n');
+    // 可选统一缩进（这里保持原样）
+    return md;
+}
+
 function App() {
     const [markdown, setMarkdown] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [copied, setCopied] = useState(false);
     const [highlight, setHighlight] = useState(false);
-    const textareaRef=useRef(null);
+    const textareaRef = useRef(null);
+    const [title, setTitle] = useState('clip'); // 默认标题
 
-    const handleExtract = () => {
+    const handleExtract = debounce(() => {
         setLoading(true);
         setError('');
         setMarkdown('');
@@ -33,40 +57,57 @@ function App() {
                     }
 
                     if (response?.ok) {
-                        setMarkdown(response.markdown);
+                        let md = formatMarkdown(response.markdown);
+                        setMarkdown(md);
+
+                        // 保存标题
+                        const t = response.title?.trim() || 'clip';
+                        setTitle(t.replace(/[\\/:*?"<>|]/g, '_')); // 替换文件名非法字符
+
                         setHighlight(true);
-                        setTimeout(() => {
-                            setHighlight(false);
-                        }, 2000);
                         textareaRef.current?.focus();
+                        setTimeout(() => setHighlight(false), 2000);
                     } else {
                         setError(response?.error || '提取失败');
                     }
                 }
             );
         });
-    };
+    }, 500);
 
-    const handleCopy = async() => {
+    const handleCopy = debounce(async () => {
         if (!markdown) return;
-        try{
-            await navigator.clipboard.writeText(markdown);
+        try {
+            let md = formatMarkdown(markdown);
+            await navigator.clipboard.writeText(md);
             setCopied(true);
             setHighlight(true);
             textareaRef.current?.focus();
-            setTimeout(() =>{
-                setCopied(false)
+            setTimeout(() => {
+                setCopied(false);
                 setHighlight(false);
             }, 2000);
-        }catch(e){
-            setError('复制失败,请手动复制');
+        } catch (e) {
+            setError('复制失败，请手动复制');
         }
-    };
+    }, 500);
 
     const handleClear = () => {
         setMarkdown('');
         setCopied(false);
         setError('');
+    };
+
+    const handleDownload = () => {
+        if (!markdown) return;
+        const md = formatMarkdown(markdown);
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.md`; // 用文章标题命名
+        a.click();
+        URL.revokeObjectURL(url);
     };
 
     return (
@@ -118,6 +159,23 @@ function App() {
                 </button>
 
                 <button
+                    onClick={handleDownload}
+                    disabled={!markdown}
+                    style={{
+                        flex: 1,
+                        padding: '6px 0',
+                        backgroundColor: '#ff9800',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: !markdown ? 'not-allowed' : 'pointer',
+                        transition: 'background-color 0.3s'
+                    }}
+                >
+                    下载 Markdown
+                </button>
+
+                <button
                     onClick={handleClear}
                     disabled={!markdown}
                     style={{
@@ -136,9 +194,7 @@ function App() {
             </div>
 
             {error && (
-                <div style={{ color: 'red', marginBottom: '8px' }}>
-                    {error}
-                </div>
+                <div style={{ color: 'red', marginBottom: '8px' }}>{error}</div>
             )}
 
             <textarea
@@ -150,17 +206,15 @@ function App() {
                     width: '100%',
                     height: '300px',
                     marginTop: '8px',
-                    padding: '8px 12px', // 上下 8px，左右 12px，保证左右间距
+                    padding: '8px 12px',
                     borderRadius: '4px',
-                    border: highlight
-                        ? '1px solid #4caf50'
-                        : '1px solid #ccc',
+                    border: highlight ? '1px solid #4caf50' : '1px solid #ccc',
                     fontFamily: 'monospace',
                     resize: 'vertical',
                     whiteSpace: 'pre-wrap',
                     overflow: 'auto',
-                    outline: 'none',     // 点击时没有黑色边框
-                    boxSizing: 'border-box' // 关键：padding 包含在 width 内
+                    outline: 'none',
+                    boxSizing: 'border-box'
                 }}
             />
         </div>

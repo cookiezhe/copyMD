@@ -104,6 +104,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     ok: true,
                     site: 'juejin',
                     markdown,
+                    title,
                     length: markdown.length
                 });
             } catch (err) {
