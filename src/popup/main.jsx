@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 
 function App() {
@@ -6,6 +6,8 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [copied, setCopied] = useState(false);
+    const [highlight, setHighlight] = useState(false);
+    const textareaRef=useRef(null);
 
     const handleExtract = () => {
         setLoading(true);
@@ -32,6 +34,11 @@ function App() {
 
                     if (response?.ok) {
                         setMarkdown(response.markdown);
+                        setHighlight(true);
+                        setTimeout(() => {
+                            setHighlight(false);
+                        }, 2000);
+                        textareaRef.current?.focus();
                     } else {
                         setError(response?.error || '提取失败');
                     }
@@ -45,10 +52,21 @@ function App() {
         try{
             await navigator.clipboard.writeText(markdown);
             setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            setHighlight(true);
+            textareaRef.current?.focus();
+            setTimeout(() =>{
+                setCopied(false)
+                setHighlight(false);
+            }, 2000);
         }catch(e){
             setError('复制失败,请手动复制');
         }
+    };
+
+    const handleClear = () => {
+        setMarkdown('');
+        setCopied(false);
+        setError('');
     };
 
     return (
@@ -92,11 +110,28 @@ function App() {
                         color: '#fff',
                         border: 'none',
                         borderRadius: '4px',
-                        cursor: !markdown || copied ?  'not-allowed' : 'pointer',
+                        cursor: !markdown || copied ? 'not-allowed' : 'pointer',
                         transition: 'background-color 0.3s'
                     }}
                 >
-                    {copied ? '已复制√' : '复制 Markdown'}
+                    {copied ? '已复制 √' : '复制 Markdown'}
+                </button>
+
+                <button
+                    onClick={handleClear}
+                    disabled={!markdown}
+                    style={{
+                        flex: 1,
+                        padding: '6px 0',
+                        backgroundColor: '#f44336',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: !markdown ? 'not-allowed' : 'pointer',
+                        transition: 'background-color 0.3s'
+                    }}
+                >
+                    清空
                 </button>
             </div>
 
@@ -109,6 +144,7 @@ function App() {
             <textarea
                 value={markdown}
                 readOnly
+                ref={textareaRef}
                 placeholder="这里将显示提取后的 Markdown 内容"
                 style={{
                     width: '100%',
@@ -116,7 +152,9 @@ function App() {
                     marginTop: '8px',
                     padding: '8px 12px', // 上下 8px，左右 12px，保证左右间距
                     borderRadius: '4px',
-                    border: '1px solid #ccc',
+                    border: highlight
+                        ? '1px solid #4caf50'
+                        : '1px solid #ccc',
                     fontFamily: 'monospace',
                     resize: 'vertical',
                     whiteSpace: 'pre-wrap',
