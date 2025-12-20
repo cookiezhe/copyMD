@@ -5,6 +5,7 @@ function App() {
     const [markdown, setMarkdown] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [copied, setCopied] = useState(false);
 
     const handleExtract = () => {
         setLoading(true);
@@ -39,11 +40,15 @@ function App() {
         });
     };
 
-    const handleCopy = () => {
+    const handleCopy = async() => {
         if (!markdown) return;
-        navigator.clipboard.writeText(markdown).then(() => {
-            alert('Markdown 已复制到剪贴板');
-        });
+        try{
+            await navigator.clipboard.writeText(markdown);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }catch(e){
+            setError('复制失败,请手动复制');
+        }
     };
 
     return (
@@ -79,18 +84,19 @@ function App() {
 
                 <button
                     onClick={handleCopy}
-                    disabled={!markdown}
+                    disabled={!markdown || copied}
                     style={{
                         flex: 1,
                         padding: '6px 0',
-                        backgroundColor: '#2196f3',
+                        backgroundColor: copied ? '#ccc' : '#2196f3',
                         color: '#fff',
                         border: 'none',
                         borderRadius: '4px',
-                        cursor: markdown ? 'pointer' : 'not-allowed'
+                        cursor: !markdown || copied ?  'not-allowed' : 'pointer',
+                        transition: 'background-color 0.3s'
                     }}
                 >
-                    复制 Markdown
+                    {copied ? '已复制√' : '复制 Markdown'}
                 </button>
             </div>
 
