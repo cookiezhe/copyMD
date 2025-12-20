@@ -6,7 +6,7 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleClick = () => {
+    const handleExtract = () => {
         setLoading(true);
         setError('');
         setMarkdown('');
@@ -39,23 +39,63 @@ function App() {
         });
     };
 
+    const handleCopy = () => {
+        if (!markdown) return;
+        navigator.clipboard.writeText(markdown).then(() => {
+            alert('Markdown 已复制到剪贴板');
+        });
+    };
+
     return (
         <div
             style={{
-                padding: '12px',
-                width: '360px',
+                padding: '16px',
+                width: '400px',
                 boxSizing: 'border-box',
-                fontFamily: 'sans-serif'
+                fontFamily: 'Arial, sans-serif',
+                background: '#f9f9f9',
+                borderRadius: '6px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
             }}
         >
-            <h3 style={{ margin: '0 0 8px' }}>Clip Markdown</h3>
+            <h3 style={{ margin: '0 0 12px', color: '#333' }}>Clip Markdown</h3>
 
-            <button onClick={handleClick} disabled={loading}>
-                {loading ? '提取中…' : '提取 Markdown'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <button
+                    onClick={handleExtract}
+                    disabled={loading}
+                    style={{
+                        flex: 1,
+                        padding: '6px 0',
+                        backgroundColor: '#4caf50',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: loading ? 'not-allowed' : 'pointer'
+                    }}
+                >
+                    {loading ? '提取中…' : '提取 Markdown'}
+                </button>
+
+                <button
+                    onClick={handleCopy}
+                    disabled={!markdown}
+                    style={{
+                        flex: 1,
+                        padding: '6px 0',
+                        backgroundColor: '#2196f3',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: markdown ? 'pointer' : 'not-allowed'
+                    }}
+                >
+                    复制 Markdown
+                </button>
+            </div>
 
             {error && (
-                <div style={{ color: 'red', marginTop: '8px' }}>
+                <div style={{ color: 'red', marginBottom: '8px' }}>
                     {error}
                 </div>
             )}
@@ -68,7 +108,15 @@ function App() {
                     width: '100%',
                     height: '300px',
                     marginTop: '8px',
-                    resize: 'none'
+                    padding: '8px 12px', // 上下 8px，左右 12px，保证左右间距
+                    borderRadius: '4px',
+                    border: '1px solid #ccc',
+                    fontFamily: 'monospace',
+                    resize: 'vertical',
+                    whiteSpace: 'pre-wrap',
+                    overflow: 'auto',
+                    outline: 'none',     // 点击时没有黑色边框
+                    boxSizing: 'border-box' // 关键：padding 包含在 width 内
                 }}
             />
         </div>
